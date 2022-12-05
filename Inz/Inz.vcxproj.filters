@@ -26,12 +26,12 @@
     <ClInclude Include="__vm\.Inz.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Arduino\inzynier\MAJN\TinyMPU6050.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="TinyMPU6050.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\Arduino\inzynier\MAJN\TinyMPU6050.cpp">
+    <ClCompile Include="TinyMPU6050.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
