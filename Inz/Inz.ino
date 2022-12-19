@@ -140,9 +140,10 @@ void setup() {
     //KONFIGURACJA PRZERWAN
     cli();                                  //clear interrupt - wylacz wszystkie przerwania
     WDTCSR = (1 << WDCE);                   //Watchdog change enable - umozliwia zmiane prescalera
+    WDTCSR = (0 << WDE);                    //Watchdog system reset disable
     WDTCSR = (1 << WDIE);                   //Watchdog interrupt enable
     WDTCSR = (1 << WDP1) | (1 << WDP0);     //prescaler na 0.125s
-    TCCR1A = 0;                             //wyzeruj rejestr generatora PWM na timer1
+    //TCCR1A = 0;                             //wyzeruj rejestr generatora PWM na timer1
     TCCR1B = B00000011;                     //prescaler timer1 na 64 (0.262s)
     TIMSK1 |= B00000010;                    //wlacz compare interrupt na rejestrze A timer1 (OCIE1A=1)
     OCR1A = 25000;                          //ustaw wartosc do porownywania dla timer1 (16kHz/64*0.1s = 25000)
@@ -164,7 +165,7 @@ void setup() {
 */
 void loop() {
     if (triggerDataCollect) {
-        wdt_reset();
+        wdt_reset();                        //zresetuj licznik watchdoga
         triggerDataCollect = false;
 
         if (rtc.isrunning()) {
@@ -199,7 +200,7 @@ void loop() {
         dataRecord = String(idx++);
         dataRecord += ',';
         //zamien timestamp na string
-        dataRecord += String(now.timestamp(DateTime::TIMESTAMP_TIME));
+        dataRecord += now.timestamp(DateTime::TIMESTAMP_TIME);
         dataRecord += ',';
         //zamien temperature na string
         dataRecord += String(tempCelsius);
@@ -221,29 +222,28 @@ void loop() {
         dataRecord += String(chargeVoltage);
 
         //zapisz linie danych
-        if (logFile) {
+        if (logFile) {                      //sprawdzanie, czy plik jest otwarty
             logFile.println(dataRecord);
             logFile.flush();
-            //logFile.close();
             Serial.println(dataRecord);
             signalError(false);
         }
         else {
             Serial.println("blad otwierania pliku");
-            signalError(true);
+            signalError(true);              //jezeli wystapi problem z plikiem, zasygnalizuj blad
         }
     }
 }
 
 ISR(WDT_vect) {
-    digitalWrite(ERR_PIN, HIGH);
+    digitalWrite(ERR_PIN, HIGH);            //sygnalizacja bledu dioda LED
 }
 
 ISR(TIMER1_COMPA_vect) {
-    TCNT1 = 0;      //reset timer1
-    triggerDataCollect = true;
+    TCNT1 = 0;                              //reset timer1
+    triggerDataCollect = true;              //wyzwalanie procedury akwizycji danych
 }
 
 ISR(TIMER2_OVF_vect) {
-    if (++resetCounter >= 126) RPM = 0;      //po 2 sekundach bezczynnosci wyzeruj RPM
+    if (++resetCounter >= 126) RPM = 0;     //po 2 sekundach bezczynnosci wyzeruj RPM
 }
